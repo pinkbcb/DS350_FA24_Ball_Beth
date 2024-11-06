@@ -1,0 +1,77 @@
+```{r}
+library(tidyverse)
+
+```
+
+```{r}
+#install.packages("nycflights13")
+data <- nycflights13::flights
+
+```
+
+### Week 2: Task 1
+
+**Task: Visualizing Large Distributions**
+
+```{r}
+# Univariate distribution for dep_delay
+ggplot(data, aes(x = dep_delay)) +
+  geom_density(fill = "blue", alpha = 0.5) +
+  labs(title = "Density Plot of Departure Delays", x = "Departure Delay (minutes)", y = "Density")
+
+# Univariate distribution for arr_delay
+ggplot(data, aes(x = arr_delay)) +
+  geom_density(fill = "red", alpha = 0.5) +
+  labs(title = "Density Plot of Arrival Delays", x = "Arrival Delay (minutes)", y = "Density")
+
+
+```
+
+The two charts above respectively display the distributions of *arrival*
+delays and *departure* delays. At first glance, they may seem almost
+identical, being different only in the color. However, they represent
+distinct data points. While both distributions share similarities in
+their overall shape, they are different.
+
+The chart below shows both variables in a single visualization,
+providing a more complete picture of the relationship between departure
+and arrival delays. It shows a strong linear correlation, showing that
+flights that depart late usually arrive late. However, the data also
+show that the delays are not always the same this shows that departure
+and arrival delays are not simply the same data viewed from different
+lens.
+
+These visualizations show that, as a general rule, late departures lead
+to late arrivals. However, they also show that a flight can still arrive
+late even when it departs on time, typically by no more than an hour, or
+so. This suggests that other factors such as weather or air traffic can
+effect a flight’s arrival time, even when departure is on time Overall,
+the findings align with expectations: late departures often cause late
+arrivals, but other factors can contribute to delays, regardless of
+departure timing.
+
+```{r}
+#install.packages("hexbin")
+#library(hexbin)
+
+#ggplot(data, aes(x = dep_delay, y = arr_delay)) +
+#  geom_hex(bins = 50) +
+#  scale_fill_viridis_c() +
+#  labs(title = "Hexbin Plot of Departure and Arrival Delays", 
+#      x = "Departure Delay (minutes)", y = "Arrival Delay (minutes)") +
+#  theme_minimal()
+
+#```
+
+#```{r}
+# Load necessary libraries
+library(ggplot2)
+
+# Create a point plot
+ggplot(data, aes(x = dep_delay, y = arr_delay)) +
+  geom_point(alpha = 0.5, color = "blue", size = 1) +
+  labs(title = "Point Plot of Departure and Arrival Delays", 
+       x = "Departure Delay (minutes)", y = "Arrival Delay (minutes)") +
+  theme_minimal()
+
+```

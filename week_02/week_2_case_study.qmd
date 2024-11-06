@@ -1,0 +1,52 @@
+---
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+### Week 2: Case Study
+
+**Gapminder Part 1**
+
+```{r}
+# Load necessary libraries
+library(tidyverse)
+#install.packages("gapminder")
+library(gapminder)
+```
+
+
+
+```{r, fig.width=10}
+# Load the libraries
+library(tidyverse)
+library(gapminder)
+
+# Remove Kuwait from the data
+data <- gapminder %>%
+  filter(country != "Kuwait")
+
+ggplot(data, aes(y = gdpPercap, x = lifeExp, color = continent, size = pop)) +
+
+  geom_point(alpha = 0.7) +
+  scale_size_continuous(
+    range = c(1, 10),  
+    name = "Population (100k)", 
+    breaks = c(250000000, 500000000, 750000000, 1000000000, 1250000000),
+    labels = c("2500", "5000", "7500", "10000", "12500"),
+  ) +  
+
+  scale_y_continuous(trans = "sqrt") +
+  theme_bw() +
+  facet_wrap(~year, nrow = 1) +  
+  labs(
+    
+    y = "GDP per Capita",
+    x = "Life Expectancy",
+    color = "Continent"
+  )
+
+```
+
+
+
+

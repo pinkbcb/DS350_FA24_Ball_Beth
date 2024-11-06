@@ -1,0 +1,65 @@
+---
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+
+
+
+
+```{r}
+pacman::p_load(directlabels, gapminder, tidyverse, ggrepel, ggthemes)
+```
+
+```{r}
+p = ggplot(data = iris, size = 12, aes(x=Sepal.Width, y = Sepal.Length, color = Species, shape = Species)) +
+  geom_point() +
+  #theme_clean() +
+  scale_color_brewer(palette = "Set1") +
+  theme(
+    legend.position = "null",
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor.x = element_blank(),
+    axis.ticks.length = unit(6, "pt"),
+    plot.title = element_text(family = "serif",  hjust = .5)
+  ) +
+  geom_dl(aes(label = Species), method = "smart.grid") +
+  geom_text_repel(aes(label = Species)) # good for tabling group means
+
+p
+```
+
+```{r}
+ggplot(data = iris, size = 12, aes(x=Sepal.Width, y = Sepal.Length, color = Species, shape = Species)) +
+  geom_point() +
+  theme_bw() +
+  scale_color_brewer(palette = "Set1")
+
+
+
+```
+
+
+# -------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------
+
+```{r}
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

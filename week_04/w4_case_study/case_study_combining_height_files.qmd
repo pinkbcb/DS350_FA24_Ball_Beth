@@ -1,0 +1,220 @@
+---
+title: "Task: Country Heights"
+subtitle: "Course DS 350"
+author: "Bethany Ball"
+keep-md: true
+fig-width: 12  
+fig-height: 10
+format:
+  html:
+    self-contained: true
+    page-layout: full
+    title-block-banner: true
+    toc: true
+    toc-depth: 3
+    toc-location: body
+    number-sections: false
+    html-math-method: katex
+    code-fold: true
+    code-summary: "Show the code"
+    code-overflow: wrap
+    code-copy: hover
+    code-tools:
+        source: false
+        toggle: true
+        caption: See code
+execute: 
+  warning: false
+    
+editor_options: 
+  chunk_output_type: console
+---
+
+
+```{r}
+library(haven)
+library(foreign)
+library(readr)
+library(dplyr)
+library(ggplot2)
+library(foreign)
+
+#library(pacman)
+
+#pacman ::(haven, foreign, readr, dplyr, ggplot2, foreign, tidyverse, rio, pander)
+
+```
+
+```{r}
+
+german_conscr = read_dta("germanconscr.dta")
+# bdec - birth year
+# "height" - cm
+# all M
+german_conscr
+
+german_prison = read_dta("germanprison.dta")
+#"bdec" - birth year
+#"height" - cm
+# all M
+german_prison
+
+Heights_south_east <- read.dbf("Heights_south-east/B6090.dbf")#Birth Year: "ALTER" 
+#Height: "CMETER"
+#sex: "F" 5 = m, 6 = f
+head(Heights_south_east)
+
+BLS = read_csv("https://raw.githubusercontent.com/hadley/r4ds/main/data/heights.csv")
+#"height" in
+#sex (male, female)
+#birthday all: 1950
+BLS
+
+UWNSD = read_sav("main05022005.sav")
+#RT216I height of respondent, inches
+#doby DATE OF BIRTH, YEAR
+#RE35 male = 1, female = 2, other(drop/na)
+UWNSD
+
+
+# colnames(Heights_south_east)
+
+```
+
+
+
+
+```{r}
+# Wrangle datasets
+german_conscr <- german_conscr %>%
+  mutate(birth_year = bdec, height.cm = height, height.in = height / 2.54, study = "German Conscripts") %>%
+  select(birth_year, height.in, height.cm, study)
+
+german_prison <- german_prison %>%
+  mutate(birth_year = bdec, height.cm = height, height.in = height / 2.54, study = "German Prison") %>%
+  select(birth_year, height.in, height.cm, study)
+```
+
+
+```{r}
+library(dplyr)
+
+# Update Heights_south_east dataset
+Heights_south_east <- Heights_south_east %>%
+  mutate(
+    birth_year = 1800 + ALTER,  
+    height.cm = CMETER, 
+    height.in = CMETER / 2.54, 
+    study = "Heights South-East"
+  ) %>%
+  select(birth_year, height.in, height.cm, study)
+
+head(Heights_south_east)
+
+```
+
+
+```{r}
+BLS <- BLS %>%
+  filter(sex == "male") %>%
+  mutate(birth_year = 1950, height.in = height, height.cm = height * 2.54, study = "BLS") %>%
+  select(birth_year, height.in, height.cm, study)
+```
+
+```{r}
+
+# RT216F (feet)
+# RT216I (inches)
+UWNSD_FI <- UWNSD %>% 
+  filter(
+    RT216F != "-1" & RT216F != "-2" & RT216F != "." &
+    RT216I != "-1" & RT216I != "-2" & RT216I != "25" & 
+    RT216I != "35" & RT216I != "45" & RT216I != "50" & RT216I != "85"
+  ) %>%
+  mutate(height_in = as.numeric(RT216F) * 12 + as.numeric(RT216I))
+
+
+
+```
+
+
+```{r}
+library(dplyr)
+
+UWNSD <- UWNSD_FI %>%
+  mutate(
+    birth_year = DOBY,
+    height.in = height_in,
+    height.cm = height_in * 2.54,  
+    study = "UWNSD"
+  ) %>%
+  select(birth_year, height.in, height.cm, study)
+
+#print(UWNSD)
+
+# include the full year
+UWNSD <- UWNSD %>%
+  mutate(
+    birth_year = ifelse(birth_year <= 5, 2000 + birth_year, 1900 + birth_year)
+  )
+
+print(UWNSD)
+
+```
+
+
+```{r}
+# Combine datasets
+combined_data <- bind_rows(german_conscr, german_prison, Heights_south_east, BLS, UWNSD)
+
+library(ggplot2)
+library(plotly)
+
+plot_1 <- ggplot(combined_data, aes(x = birth_year, y = height.cm, color = study)) +
+  geom_point() +
+  labs(title = "Height Distribution Across Studies",
+       x = "Birth Year", y = "Height (cm)") +
+  theme_minimal()
+
+ggplotly(plot_1)
+
+
+
+```
+
+
+```{r}
+german_conscr
+german_prison
+head(Heights_south_east)
+BLS
+UWNSD
+
+combined_data
+```
+
+
+Paragraph on Data Wrangling
+
+The data wrangling process involved importing five datasets in various formats, including Stata, DBF, CSV, and SPSS. Each dataset required careful cleaning, standardizing column names, and converting heights between inches and centimeters. For datasets that did not have a clear birth year, assumptions were made (e.g., for the BLS data, a birth year of 1950 was assumed). One challenge was identifying the birth year in the German soldier data, where column names were in German. After using Google Translate, the correct column (geburtsjahr) was identified. Overall, I had to ensure consistency in column names (birth_year, height.in, height.cm, and study) before combining the datasets.
+
+
+Analysis and Comparison
+
+The data suggests differences in average heights across birth years and geographic regions. While the datasets show an increase in height over time, especially in 20th-century data, there are variations. For example, the German conscripts from the 19th century appear shorter than those in the mid-20th century BLS data. This aligns with historical trends showing a gradual increase in human height due to better nutrition, health, and living conditions.
+
+In comparison to the previous task, this analysis confirms the trend that humans have become taller over the centuries, but the rate of growth and regional differences highlight the complexity of height distribution. Some discrepancies could arise due to differences in data collection methods, sample populations, or societal conditions during the studied periods.
+Conclusion
+
+Overall, the data supports the notion that humans have been getting taller over time, though the extent of height increase varies based on geography and historical context. This increase likely results from improved nutrition and health care over time. However, it’s important to consider the limitations of historical datasets and the potential biases that may affect this conclusion.
+
+
+
+
+
+
+
+
+
+
+

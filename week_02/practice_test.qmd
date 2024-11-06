@@ -1,0 +1,56 @@
+---
+title: "Untitled"
+format: html
+editor: visual
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r}
+library(tidyverse)
+
+
+ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width, color =
+      Species))+
+        geom_point()
+
+
+```
+
+
+```{r}
+ratio %>% iris %>% 
+  summarise(
+    ratio = Sepal.Width/Sepal.Langth
+    select
+  )
+
+
+
+arrange(Sepal.Langth)
+```
+
+```{r}
+idata <- iris %>% 
+  arrange(desc(Sepal.Length)) %>% 
+  mutate(
+    ratio = Sepal.Width/Sepal.Length,
+  ) %>% 
+  select(Species, ratio) %>% 
+  group_by(Species) %>% 
+  summarise(
+    sd_ratio =. sd(ratio),
+    mean_ratio = mean(ratio)
+  )
+  
+
+idata
+```
+
+
+
+
+
+
+
+

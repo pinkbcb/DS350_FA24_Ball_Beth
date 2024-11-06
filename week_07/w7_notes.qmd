@@ -1,0 +1,116 @@
+---
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+
+
+
+
+
+
+
+
+
+```{r}
+pacman::p_load(directlabels, gapminder, tidyverse, ggrepel, ggthemes, rio, plotly, nycflights13, lubridate, tidyquant)
+```
+
+```{r}
+tq_get("nflx", get = "stock.prices")
+
+sp_500 = tq_index("SP500") %>% 
+  tq_get(get = "stock.prices")
+SP500
+
+tq_transmute_fun_options()
+
+SP500 %>% 
+  group_by(symbol) %>% 
+  tq_transmute(adjustted, mutate_fun = monthlyReruen)
+```
+
+```{r}
+# Individual Stock data:  tq_get("stock")
+price_data <- tq_get(c("BA", "AMZN", "MSFT", "AAPL"),
+       get = "stock.prices",
+       from = "2020-03-01")
+
+ggplot(price_data, aes(x= date, y = adjusted, color = symbol)) +
+  geom_line()
+```
+
+
+```{r}
+return_data <- price_data %>% 
+  group_by(symbol) %>% 
+tq_transmute(select = adjusted,
+               mutate_fun = periodReturn,
+               period = "daily",
+               type = "log")
+
+c
+  
+
+
+```
+
+```{r}
+port1 <- return_data %>% 
+  tq_portfolio(assets_col=symbol,
+               returns_col=daily.returns,
+               weights = tibble(asset.names = c("BA", "AMZN", "MSFT"), 
+                                weight = c(0.259,.534,.207)),
+               wealth.index = T)
+
+
+ggplot(port1, aes(x = date, y = portfolio.wealthindex)) +
+  geom_line()
+
+
+
+```
+
+
+```{r}
+x = "January 21st, 2017"
+
+new_date = mdy(x)
+
+wday(new_date, label = TRUE)
+
+
+
+```
+
+
+
+```{r}
+y = "June 25th 2004"
+
+new_b_day = mdy(y)
+year_day = yday(new_b_day)
+
+wday(new_b_day, label = TRUE)
+
+year_day
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

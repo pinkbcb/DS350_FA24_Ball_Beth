@@ -1,0 +1,249 @@
+---
+title: "Task: It's About Time"
+subtitle: "Course DS 350"
+author: "Bethany Ball"
+keep-md: true
+fig-width: 14
+format:
+  html:
+    self-contained: true
+    page-layout: full
+    title-block-banner: true
+    toc: true
+    toc-depth: 3
+    toc-location: body
+    number-sections: false
+    html-math-method: katex
+    code-fold: true
+    code-summary: "Show the code"
+    code-overflow: wrap
+    code-copy: hover
+    code-tools:
+        source: false
+        toggle: true
+        caption: See code
+execute: 
+  warning: false
+editor: 
+  markdown: 
+    wrap: 72
+editor_options: 
+  chunk_output_type: console
+---
+
+
+```{r}
+pacman::p_load(directlabels, gapminder, tidyverse, ggrepel, ggthemes, rio, plotly, lubridate, scales, patchwork)
+
+```
+
+
+```{r}
+sales_data <- read_csv("https://byuistats.github.io/M335/data/sales.csv")
+
+sales_data <- sales_data %>%
+  mutate(Time = ymd_hms(Time, tz = "UTC") %>% 
+           with_tz("America/Denver"))
+
+```
+
+```{r}
+summary(sales_data)
+sales_data <- sales_data %>%
+  drop_na()  
+
+sales_data$Time <- as.POSIXct(sales_data$Time, tz = "UTC")
+sales_data <- sales_data %>%
+  mutate(day = floor_date(Time, "day"),
+         week = floor_date(Time, "week"),
+         month = floor_date(Time, "month"))
+head(sales_data)
+
+```
+
+```{r}
+daily_revenue <- sales_data %>%
+  group_by(Name, day) %>%
+  summarise(gross_revenue = sum(Amount), .groups = 'drop')
+
+weekly_revenue <- sales_data %>%
+  group_by(Name, week) %>%
+  summarize(gross_revenue = sum(Amount), .groups = 'drop')
+
+monthly_revenue <- sales_data %>%
+  group_by(Name, month) %>%
+  summarize(gross_revenue = sum(Amount), .groups = 'drop')
+
+head(daily_revenue)
+head(weekly_revenue)
+head(monthly_revenue)
+
+```
+
+```{r}
+p1 <- ggplot(daily_revenue, aes(x = day, y = gross_revenue, color = Name)) +
+  geom_line() + labs(title = "Daily Gross Revenue", x = "Date", y = "Gross Revenue") +
+  scale_y_continuous(labels = dollar_format())
+
+p2 <- ggplot(weekly_revenue, aes(x = week, y = gross_revenue, color = Name)) +
+  geom_line() + labs(title = "Weekly Gross Revenue", x = "Week", y = "Gross Revenue") +
+  scale_y_continuous(labels = dollar_format())
+
+p3 <- ggplot(monthly_revenue, aes(x = month, y = gross_revenue, color = Name)) +
+  geom_line() + labs(title = "Monthly Gross Revenue", x = "Month", y = "Gross Revenue") +
+  scale_y_continuous(labels = dollar_format())
+
+p1 + p2 + p3
+
+```
+
+
+```{r}
+daily_traffic <- sales_data %>%
+  group_by(Name, day) %>%
+  summarize(transactions = n())
+
+weekly_traffic <- sales_data %>%
+  group_by(Name, week) %>%
+  summarize(transactions = n())
+
+monthly_traffic <- sales_data %>%
+  group_by(Name, month) %>%
+  summarize(transactions = n())
+
+p4 <- ggplot(daily_traffic, aes(x = day, y = transactions, color = Name)) +
+  geom_line() + labs(title = "Daily Customer Traffic", x = "Date", y = "Transactions")
+
+p5 <- ggplot(weekly_traffic, aes(x = week, y = transactions, color = Name)) +
+  geom_line() + labs(title = "Weekly Customer Traffic", x = "Week", y = "Transactions")
+
+p6 <- ggplot(monthly_traffic, aes(x = month, y = transactions, color = Name)) +
+  geom_line() + labs(title = "Monthly Customer Traffic", x = "Month", y = "Transactions")
+
+p4 + p5 + p6
+
+```
+
+```{r}
+sales_data <- sales_data %>%
+  mutate(Time = ymd_hms(Time),  # Ensure Time is in the correct date-time format
+         hour = hour(Time),      # Extract hour from the correct column
+         day = floor_date(Time, "day"),
+         week = floor_date(Time, "week"),
+         month = floor_date(Time, "month"))
+
+hourly_traffic <- sales_data %>%
+  group_by(Name, hour) %>%
+  summarize(transactions = n())
+
+# Plot
+ggplot(hourly_traffic, aes(x = hour, y = transactions, fill = Name)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "Hours of Operation by Company", x = "Hour of Day", y = "Number of Transactions") +
+  theme_minimal()
+
+```
+
+```{r}
+average_transactions_by_hour <- sales_data %>%
+  group_by(hour) %>%
+  summarise(average_transactions = n(), .groups = 'drop')  
+
+ggplot(average_transactions_by_hour, aes(x = hour, y = average_transactions)) +
+  geom_line(color = "blue") +              
+  geom_point(color = "blue") +              
+  labs(title = "Average Transactions by Hour",
+       x = "Hour of the Day",
+       y = "Average Number of Transactions") +
+  theme_minimal() +                        
+  scale_x_continuous(breaks = 0:23) +     
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))  
+```
+
+
+```{r}
+average_transactions_by_month <- sales_data %>%
+  group_by(month) %>%
+  summarise(average_transactions = n(), .groups = 'drop')  
+
+average_transactions_by_month <- average_transactions_by_month %>%
+  mutate(month = as.Date(paste(year(month), month(month), "01", sep = "-")))
+
+ggplot(average_transactions_by_month, aes(x = month, y = average_transactions)) +
+  geom_line(color = "darkgreen") +              
+  geom_point(color = "darkgreen") +              
+  labs(title = "Average Transactions by Month",
+       x = "Month",
+       y = "Average Number of Transactions") +
+  theme_minimal() +                             
+  scale_x_date(date_labels = "%Y-%m", date_breaks = "1 month") +  
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))  
+
+```
+
+```{r}
+port1 <- return_data %>% 
+  tq_portfolio(assets_col=symbol,
+               returns_col=daily.returns,
+               weights = tibble(asset.names = c("BA", "AMZN", "MSFT"), 
+                                weight = c(0.259,.534,.207)),
+               wealth.index = T)
+
+
+ggplot(port1, aes(x = date, y = portfolio.wealthindex)) +
+  geom_line()
+```
+
+```{r}
+
+
+port2 <- return_data %>% 
+  tq_portfolio(assets_col = symbol,
+               returns_col = daily.returns,
+               weights = tibble(asset.names = c("GOOGL", "TSLA", "META"), 
+                                weight = c(0.259,.534,.207)),
+               wealth.index = T)
+
+
+ggplot(port2, aes(x = date, y = portfolio.wealthindex)) +
+  geom_line()
+
+```
+
+
+```{r}
+# Port 1: Using BA, AMZN, MSFT
+weights1 <- tibble(symbol = c("BA", "AMZN", "MSFT"), 
+                   weights = c(0.259, 0.534, 0.207))
+
+port1 <- return_data %>% 
+  tq_portfolio(assets_col = symbol,
+               returns_col = daily.returns,
+               weights = weights1,
+               wealth.index = TRUE)
+
+ggplot(port1, aes(x = date, y = portfolio.wealthindex)) +
+  geom_line()
+
+# Port 2: Using GOOGL, TSLA, META
+weights2 <- tibble(symbol = c("GOOGL", "TSLA", "META"), 
+                   weights = c(0.259, 0.534, 0.207))
+
+port2 <- return_data %>% 
+  tq_portfolio(assets_col = symbol,
+               returns_col = daily.returns,
+               weights = weights2,
+               wealth.index = TRUE)
+
+ggplot(port2, aes(x = date, y = portfolio.wealthindex)) +
+  geom_line()
+
+```
+
+
+
+
+
+
+
+

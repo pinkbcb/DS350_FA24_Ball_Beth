@@ -1,0 +1,105 @@
+---
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+
+```{r}
+install.packages("sf")
+
+install.packages("USAboundaries", repos = "https://ropensci.r-universe.dev", type = "source")
+install.packages("USAboundariesData", repos = "https://ropensci.r-universe.dev", type = "source")
+```
+
+```{r}
+pacman::p_load(directlabels, gapminder, tidyverse, ggrepel, ggthemes, rio, plotly, lubridate, scales, patchwork, sf, USAboundaries, USAboundariesData)
+
+
+oregon = us_counties(state = "Oregon") %>% 
+  
+
+head(oregon)
+```
+
+```{r}
+or_cities = us_cities(states = "Oregon")
+```
+
+```{r}
+ggplot(oregon, aes(geometry = geometry)) +
+  geom_sf() +
+  geom_sf(data = or_cities, aes(geometry = geometry, color = population)) +
+ 
+  coord_sf(crs = st_crs("+proj=merc +lat_1=60 +lon_0=0 +x_0=0 +y_0=0 +R=6371000 +units=m +no_defs +type=crs"))
+```
+
+```{r}
+pacman::p_load(sf)
+
+ggplot(us_states(), aes(geometry = geometry)) +
+  geom_sf()
+```
+
+
+
+
+
+```{r}
+pacman::p_load(downloader, sf, fs, tidyverse)
+
+data_thing = function(path){
+river_path <- path
+df <- tempfile(); uf <- tempfile()
+download(river_path, df, mode = "wb")
+unzip(df, exdir = uf)
+out_put <- read_sf(uf)
+file_delete(df); dir_delete(uf)
+
+return(out_put)
+}
+```
+
+```{r}
+dams =  data_thing('https://byuistats.github.io/M335/data/Idaho_Dams.zip')
+water = data_thing("https://byuistats.github.io/M335/data/water.zip")
+wells = data_thing("https://byuistats.github.io/M335/data/Wells.zip")
+state = data_thing("https://byuistats.github.io/M335/data/shp.zip")
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

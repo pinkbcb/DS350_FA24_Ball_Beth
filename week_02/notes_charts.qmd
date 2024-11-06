@@ -1,0 +1,120 @@
+---
+title: "Weekly Notes"
+subtitle: "Course DS 350"
+author: "Bethany Ball"
+format:
+  html:
+    self-contained: true
+    page-layout: full
+    title-block-banner: true
+    toc: true
+    toc-depth: 3
+    toc-location: body
+    number-sections: false
+    html-math-method: katex
+    code-fold: true
+    code-summary: "Show the code"
+    code-overflow: wrap
+    code-copy: hover
+    code-tools:
+        source: false
+        toggle: true
+        caption: See code
+execute: 
+  warning: false
+    
+editor_options: 
+  chunk_output_type: console
+---
+
+### Weekly Notes
+
+# section heading (write with on # first)
+text text text (just writing plain text)
+**bold** or __bold__ (2 starts or 2 underscores before and after the word(S))
+_italics_ (italics underscore before and after)
+
+below is how to make sure that that the code is in R.
+...{r}
+
+...
+
+short-key for a new code chunk is :
+PC: ctrl_alt_i
+Mac command + option +i
+
+### GGPlot
+#install.packages("tidyverse")
+library(tidyverse)
+
+mtcars
+
+head(mtcars)
+mtcars %>% head()
+# %>% (short key: command + Shift + m)
+
+tail(mtcars)
+glimpse(mtcars)
+
+view(mtcars)
+
+
+
+
+
+
+```{r}
+library(tidyverse)
+```
+
+
+```{r}
+mtcars %>% view()
+```
+
+
+```{r}
+ggplot(data = mtcars, mapping = aes(x = factor(cyl), y = mpg, color = cyl)) + 
+  geom_point() +
+  geom_violin() +
+  geom_line()
+```
+
+
+```{r}
+install.packages('nycflights13')
+```
+
+```{r}
+library(nycflights13)
+
+#flights %>% view()
+
+ggplot(data = flights, mapping = aes(x=arr_time, y = sched_arr_time)) +
+  geom_point()
+
+ggplot(data = flights, aes(x = dep_time, y = dep_delay, color =
+  (dep_delay<0)))+
+  geom_point()
+
+ 
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

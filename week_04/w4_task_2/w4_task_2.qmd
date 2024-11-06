@@ -1,0 +1,176 @@
+---
+title: "Task: Country Heights"
+subtitle: "Course DS 350"
+author: "Bethany Ball"
+keep-md: true
+format:
+  html:
+    self-contained: true
+    page-layout: full
+    title-block-banner: true
+    toc: true
+    toc-depth: 3
+    toc-location: body
+    number-sections: false
+    html-math-method: katex
+    code-fold: true
+    code-summary: "Show the code"
+    code-overflow: wrap
+    code-copy: hover
+    code-tools:
+        source: false
+        toggle: true
+        caption: See code
+execute: 
+  warning: false
+    
+editor_options: 
+  chunk_output_type: console
+---
+```{r}
+library(dplyr)
+library(tidyr)
+library(readxl)
+
+heights_data = read_excel("Height.xlsx")
+heights_data
+
+```
+
+
+
+```{r}
+data <- heights_data %>%
+  mutate(Continent = NA, region = NA, country = NA) %>%
+  select(Continent, region, country, everything())
+
+continent_values = c("Europe", "Americas", "Africa", "Latin America and the Caribbean", 
+                     "Oceania", "Asia")
+
+
+region_values = c("Western Europe", "Northern Europe", "Southern Europe", "Eastern Europe", 
+                  "Northern America", "Caribbean", "Central America", "South America", 
+                  "Australia and New Zealand", "Melanesia", "Micronesia", "Polynesia", 
+                  "Southern Asia", "Eastern Asia", "South-Eastern Asia", "Western Asia", 
+                  "Central Asia", "Northern Africa", "Western Africa", "Middle Africa", 
+                  "Southern Africa", "Eastern Africa")
+```
+
+
+```{r}
+# Continent column
+current_continent = NA
+for (i in 1:nrow(data)) {
+  if (data$Continent_Region_Country[i] %in% continent_values) {
+    current_continent = data$Continent_Region_Country[i]
+  }
+  data$Continent[i] = current_continent
+}
+```
+
+
+```{r}
+# region column
+current_region = NA
+for (i in 1:nrow(data)) {
+  if (data$Continent_Region_Country[i] %in% region_values) {
+    current_region = data$Continent_Region_Country[i]
+  }
+  data$region[i] = current_region
+}
+```
+
+
+```{r}
+# country column
+not_country = c(continent_values, region_values)
+
+for (i in 1:nrow(data)) {
+  if (!(data$Continent_Region_Country[i] %in% not_country)) {
+    data$country[i] = data$Continent_Region_Country[i]
+  } else {
+    data$country[i] = NA
+  }
+}
+```
+
+
+```{r}
+
+data <- data %>% filter(!is.na(country))
+
+data <- data %>% select(-Continent_Region_Country)
+print(data)
+
+```
+
+
+```{r}
+
+long_data <- data %>% 
+  pivot_longer(
+    cols = any_of(c(starts_with("18"), starts_with("19"), starts_with("20"))),
+    names_to = "year_decade", 
+    values_to = "height.cm"
+  )
+
+long_data
+```
+
+```{r}
+
+filtered_data = long_data %>% filter(!is.na(height.cm))
+
+filtered_data
+```
+
+```{r}
+
+final_data = filtered_data %>% select(-Continent, -region)
+
+final_data
+```
+
+```{r}
+
+final_data <- final_data %>%
+  select(Code, country, height.cm, year_decade)
+
+final_data
+```
+
+
+
+
+
+
+```{r}
+library(ggplot2)
+
+# Convert heights from centimeters to inches
+final_data <- final_data %>%
+  mutate(height.inches = height.cm / 2.54)
+
+# Create the plot (no colors for country, just highlighting Germany)
+ggplot(final_data, aes(x = as.numeric(year_decade), y = height.inches)) +
+  geom_line(aes(group = country), color = "gray", size = 1) +
+  geom_point(aes(group = country), color = "gray", size = 2) +
+  # Highlight Germany's data in red
+  geom_line(data = filter(final_data, country %in% c("Germany", "Federal Republic of Germany (until 1990)")), 
+            aes(x = as.numeric(year_decade), y = height.inches), color = "red", size = 1.5) +
+  geom_point(data = filter(final_data, country %in% c("Germany", "Federal Republic of Germany (until 1990)")), 
+             aes(x = as.numeric(year_decade), y = height.inches), color = "red", size = 3) +
+  labs(title = "Change in Heights Over Decades", 
+       x = "Decade", 
+       y = "Height (inches)", 
+       caption = "Germany is highlighted in red") +
+  theme_minimal()
+
+
+
+```
+
+
+The plot shows a clear trend of increasing human height over the years. The general upward movement of the data points suggests that average heights have grown significantly from the 19th century to the present. Germany, highlighted in red, follows a similar pattern of growth, further reinforcing the claim that humans are getting taller. This trend can likely be attributed to improvements in nutrition, healthcare, and general living conditions. Although the trend holds true for most countries, the rate of height increase varies, implying that external factors such as economic and regional differences may influence height growth over time.
+
+

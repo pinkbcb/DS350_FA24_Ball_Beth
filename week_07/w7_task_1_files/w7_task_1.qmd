@@ -1,0 +1,142 @@
+---
+title: "Task: Car Wash"
+subtitle: "Course DS 350"
+author: "Bethany Ball"
+keep-md: true
+fig-width: 14
+format:
+  html:
+    self-contained: true
+    page-layout: full
+    title-block-banner: true
+    toc: true
+    toc-depth: 3
+    toc-location: body
+    number-sections: false
+    html-math-method: katex
+    code-fold: true
+    code-summary: "Show the code"
+    code-overflow: wrap
+    code-copy: hover
+    code-tools:
+        source: false
+        toggle: true
+        caption: See code
+execute: 
+  warning: false
+editor: 
+  markdown: 
+    wrap: 72
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r}
+pacman::p_load(directlabels, gapminder, tidyverse, ggrepel, ggthemes, rio, plotly, lubridate, riem)
+
+```
+
+```{r}
+carwash <- read_csv("https://byuistats.github.io/M335/data/carwash.csv")
+
+# Convert UTC to local timez
+carwash <- carwash %>%
+  mutate(local_time = with_tz(ymd_hms(time), tzone = "America/Los_Angeles"))
+
+head(carwash)
+#summary(carwash)
+
+```
+
+```{r}
+carwash = carwash %>%
+  filter(!is.na(amount) & amount > 0)
+
+head(carwash)
+```
+
+```{r}
+# Create an hourly grouping variable and aggregate sales
+carwash <- carwash %>%
+  mutate(hour = ceiling_date(local_time, "hour")) %>%
+  group_by(hour) %>%
+  summarize(hourly_amount = sum(amount, na.rm = TRUE))
+
+head(carwash)
+```
+
+```{r}
+date_start <- min(carwash$hour)
+date_end <- max(carwash$hour)
+
+date_start
+date_end
+```
+
+```{r}
+temp_data <- riem_measures(station = "RXE", date_start = "2016-05-13", date_end = "2016-07-15")
+
+head(temp_data)
+
+temp_data <- temp_data %>%
+  mutate(hour = ceiling_date(valid, "hour")) %>%
+  select(hour, tmpf) %>% 
+  filter(!is.na(tmpf))
+
+
+head(temp_data)
+
+```
+
+```{r}
+combined_data <- left_join(carwash, temp_data, by = "hour")
+
+head(combined_data)
+```
+
+```{r}
+# Plot hourly sales and temperature over time
+ggplot(combined_data, aes(x = hour)) +
+  geom_line(aes(y = hourly_amount, color = "Sales"), size = 1) +
+  geom_line(aes(y = tmpf, color = "Temperature (F)"), size = 1) +
+  labs(title = "Car Wash Sales and Temperature by Hour",
+       x = "Hour of the Day",
+       y = "Sales and Temperature",
+       color = "Variable") +
+  theme_minimal()
+```
+
+```{r}
+hourly_averages <- combined_data %>%
+  mutate(date = as.Date(hour)) %>%  # Extract just the date
+  group_by(date) %>%
+  summarize(
+    avg_amount = mean(hourly_amount, na.rm = TRUE),
+    avg_temp = mean(tmpf, na.rm = TRUE)
+  )
+
+ggplot(hourly_averages, aes(x = date)) +
+  geom_line(aes(y = avg_amount, color = "Avg Hourly Sales"), size = 1) +
+  geom_line(aes(y = avg_temp, color = "Avg Temperature (F)"), size = 1) +
+  labs(title = "Average Hourly Car Wash Sales and Temperature",
+       x = "Date",
+       y = "Sales and Temperature",
+       color = "Variable") +
+  theme_minimal()
+```
+
+
+```{r}
+# Scatter plot of sales vs. temperature
+ggplot(combined_data, aes(x = tmpf, y = hourly_amount)) +
+  geom_point() +
+  geom_smooth(method = "lm", color = "blue") +
+  labs(title = "Relationship between Sales and Temperature",
+       x = "Temperature (F)",
+       y = "Hourly Sales") +
+  theme_minimal()
+
+```
+
+Based on the data I'm sure there are patterns, but they are not distinct enough to really be able to quickly see them in a chart. Especially, with the outliers in that data. To better find the patterns a statistical test might be needed, or just more data. There dose seem to be a mild rise in sales when the temperature rises, but there isn’t a very clear pattern.
+
